@@ -162,6 +162,50 @@
   100% { background-position: 200% 0; }
 }
 
+@keyframes click-burst {
+  0% {
+    box-shadow:
+      0 0 0 0 oklch(0.72 0.22 300 / 0.6),
+      0 0 20px 0 oklch(0.72 0.22 300 / 0.5);
+  }
+  60% {
+    box-shadow:
+      0 0 0 14px oklch(0.72 0.22 300 / 0),
+      0 0 55px 6px oklch(0.72 0.22 300 / 0.65);
+  }
+  100% {
+    box-shadow:
+      0 0 0 20px oklch(0.72 0.22 300 / 0),
+      0 0 0 0 oklch(0.72 0.22 300 / 0);
+  }
+}
+
+@layer base {
+  button,
+  a,
+  [role="button"],
+  summary {
+    transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  }
+  button:active,
+  a:active,
+  [role="button"]:active,
+  summary:active {
+    animation: click-burst 0.55s ease-out;
+    transform: scale(0.97);
+  }
+  button:focus-visible,
+  a:focus-visible,
+  [role="button"]:focus-visible,
+  summary:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--background),
+      0 0 0 4px var(--primary),
+      0 0 30px oklch(0.72 0.22 300 / 0.55);
+  }
+}
+
 @utility animate-pulse-glow {
   animation: pulse-glow 3s ease-in-out infinite;
 }
