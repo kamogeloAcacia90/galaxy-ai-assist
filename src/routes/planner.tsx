@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ResultCard } from "@/components/result-card";
 import { ResponsibleAiNotice } from "@/components/responsible-ai-notice";
-import { PageHeader } from "./email";
+import { PageHeader } from "@/components/page-header";
 
 export const Route = createFileRoute("/planner")({
   component: PlannerPage,

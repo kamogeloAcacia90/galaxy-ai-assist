@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { ResultCard } from "@/components/result-card";
 import { ResponsibleAiNotice } from "@/components/responsible-ai-notice";
+import { PageHeader } from "@/components/page-header";
 
 export const Route = createFileRoute("/email")({
   component: EmailPage,
