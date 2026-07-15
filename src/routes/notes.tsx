@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { FileText, Wand2 } from "lucide-react";
+import { FileText, Wand2, Eraser } from "lucide-react";
 import { toast } from "sonner";
 
 import { summarizeNotes } from "@/lib/ai.functions";
@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { ResultCard } from "@/components/result-card";
 import { ResponsibleAiNotice } from "@/components/responsible-ai-notice";
 import { PageHeader } from "@/components/page-header";
+import { addHistory } from "@/lib/history";
 
 export const Route = createFileRoute("/notes")({
   component: NotesPage,
@@ -20,7 +21,7 @@ export const Route = createFileRoute("/notes")({
       {
         name: "description",
         content:
-          "Turn raw meeting notes into key points, decisions, action items, and deadlines.",
+          "Turn raw meeting notes into an executive summary, decisions, action items, and deadlines.",
       },
     ],
   }),
@@ -43,6 +44,12 @@ function NotesPage() {
     try {
       const { text } = await run({ data: { notes } });
       setResult(text);
+      addHistory({
+        kind: "notes",
+        title: `Summary · ${notes.slice(0, 40).trim() || "meeting"}…`,
+        content: text,
+      });
+      toast.success("Summary ready");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -50,12 +57,18 @@ function NotesPage() {
     }
   };
 
+  const clearAll = () => {
+    setNotes("");
+    setResult("");
+    toast.success("Cleared");
+  };
+
   return (
     <div>
       <PageHeader
         icon={<FileText className="h-5 w-5" />}
         title="Meeting Notes Summarizer"
-        subtitle="Distill any meeting into a clean, structured brief."
+        subtitle="Executive summary, key points, decisions, and owners."
       />
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
@@ -70,14 +83,25 @@ function NotesPage() {
               onChange={(e) => setNotes(e.target.value)}
             />
           </div>
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-galaxy text-primary-foreground glow hover:opacity-90"
-          >
-            <Wand2 className="mr-2 h-4 w-4" />
-            {loading ? "Summarizing…" : "Summarize notes"}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="click-glow flex-1 bg-galaxy text-primary-foreground glow hover:opacity-90"
+            >
+              <Wand2 className="mr-2 h-4 w-4" />
+              {loading ? "Summarizing…" : "Summarize"}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={loading}
+              onClick={clearAll}
+              className="click-glow"
+            >
+              <Eraser className="mr-2 h-4 w-4" /> Clear
+            </Button>
+          </div>
         </form>
 
         <div>

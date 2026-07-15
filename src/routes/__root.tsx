@@ -12,7 +12,8 @@ import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { NavBar } from "../components/nav-bar";
+import { AppSidebar } from "../components/app-sidebar";
+import { SidebarProvider, SidebarTrigger } from "../components/ui/sidebar";
 
 function NotFoundComponent() {
   return (
@@ -133,11 +134,26 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <div className="relative min-h-screen">
-        <div className="pointer-events-none fixed inset-0 -z-10 starfield opacity-60" />
-        <NavBar />
-        <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-          <Outlet />
-        </main>
+        <div className="pointer-events-none fixed inset-0 -z-20 starfield opacity-70" />
+        <div className="pointer-events-none fixed inset-0 -z-10 nebula-glow" />
+        <SidebarProvider>
+          <div className="flex min-h-screen w-full">
+            <AppSidebar />
+            <div className="flex min-h-screen flex-1 flex-col">
+              <header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b border-border/40 bg-background/60 px-4 backdrop-blur-xl">
+                <SidebarTrigger className="click-glow" />
+                <span className="font-display text-sm font-semibold text-galaxy">
+                  Workplace Productivity Assistant
+                </span>
+              </header>
+              <main className="flex-1 px-4 py-8 sm:px-8">
+                <div className="mx-auto max-w-6xl">
+                  <Outlet />
+                </div>
+              </main>
+            </div>
+          </div>
+        </SidebarProvider>
         <Toaster theme="dark" position="bottom-right" />
       </div>
     </QueryClientProvider>
