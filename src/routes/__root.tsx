@@ -81,16 +81,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "GalaxyAI is a futuristic AI productivity assistant with a smart email generator, meeting notes summarizer, and AI task planner.",
+          "A futuristic AI productivity suite: write emails, summarize meetings, and plan your day.",
       },
       { property: "og:title", content: "GalaxyAI — Workplace Productivity Assistant" },
       {
         property: "og:description",
         content:
-          "Generate emails, summarize meetings, and plan your day with a galaxy-themed AI assistant.",
+          "A futuristic AI productivity suite: write emails, summarize meetings, and plan your day.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "GalaxyAI — Workplace Productivity Assistant" },
+      { name: "twitter:description", content: "A futuristic AI productivity suite: write emails, summarize meetings, and plan your day." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/683ec5ee-8536-4ba9-b175-eee140d9236a" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/683ec5ee-8536-4ba9-b175-eee140d9236a" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
