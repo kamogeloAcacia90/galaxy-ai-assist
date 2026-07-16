@@ -1,13 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Orbit, LogIn, UserPlus, Loader2 } from "lucide-react";
+import { Orbit, LogIn, UserPlus, Loader2, Check, X } from "lucide-react";
 import {
-  ALLOWED_USERNAME,
+  ALLOWED_EMAIL,
   hasAccount,
   isAuthenticated,
   signIn,
   signUp,
+  validateEmail,
+  validatePassword,
 } from "@/lib/auth";
 
 export const Route = createFileRoute("/auth")({
@@ -20,10 +22,23 @@ export const Route = createFileRoute("/auth")({
   }),
 });
 
+function Rule({ ok, label }: { ok: boolean; label: string }) {
+  return (
+    <li className="flex items-center gap-2 text-xs">
+      {ok ? (
+        <Check className="h-3.5 w-3.5 text-emerald-400" />
+      ) : (
+        <X className="h-3.5 w-3.5 text-muted-foreground" />
+      )}
+      <span className={ok ? "text-emerald-300" : "text-muted-foreground"}>{label}</span>
+    </li>
+  );
+}
+
 function AuthPage() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const [username, setUsername] = useState(ALLOWED_USERNAME);
+  const [email, setEmail] = useState(ALLOWED_EMAIL);
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -33,15 +48,29 @@ function AuthPage() {
     if (isAuthenticated()) navigate({ to: "/" });
   }, [navigate]);
 
+  const checks = useMemo(
+    () => ({
+      length: password.length >= 12,
+      letter: /[A-Za-z]/.test(password),
+      number: /[0-9]/.test(password),
+      special: /[^A-Za-z0-9]/.test(password),
+    }),
+    [password],
+  );
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     try {
+      const emailErr = validateEmail(email);
+      if (emailErr) throw new Error(emailErr);
       if (mode === "signup") {
-        await signUp(username, password);
+        const pwErr = validatePassword(password);
+        if (pwErr) throw new Error(pwErr);
+        await signUp(email, password);
         toast.success("Account created — welcome to GalaxyAI!");
       } else {
-        await signIn(username, password);
+        await signIn(email, password);
         toast.success("Signed in");
       }
       navigate({ to: "/" });
@@ -70,17 +99,18 @@ function AuthPage() {
 
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
-            <label className="mb-1.5 block text-sm font-medium">Username</label>
+            <label className="mb-1.5 block text-sm font-medium">Email</label>
             <input
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              autoComplete="username"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
               className="w-full rounded-lg border border-border/60 bg-background/40 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40"
-              placeholder={ALLOWED_USERNAME}
+              placeholder={ALLOWED_EMAIL}
               required
             />
             <p className="mt-1 text-xs text-muted-foreground">
-              This workspace is provisioned for <span className="font-mono">{ALLOWED_USERNAME}</span>.
+              Authorized email: <span className="font-mono">{ALLOWED_EMAIL}</span>
             </p>
           </div>
           <div>
@@ -91,10 +121,17 @@ function AuthPage() {
               onChange={(e) => setPassword(e.target.value)}
               autoComplete={mode === "signup" ? "new-password" : "current-password"}
               className="w-full rounded-lg border border-border/60 bg-background/40 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40"
-              placeholder="••••••••"
-              minLength={4}
+              placeholder="At least 12 chars, letters, numbers & symbols"
               required
             />
+            {mode === "signup" && (
+              <ul className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1">
+                <Rule ok={checks.length} label="12+ characters" />
+                <Rule ok={checks.letter} label="A letter" />
+                <Rule ok={checks.number} label="A number" />
+                <Rule ok={checks.special} label="A special char" />
+              </ul>
+            )}
           </div>
 
           <button
@@ -117,20 +154,14 @@ function AuthPage() {
           {mode === "signup" ? (
             <>
               Already have an account?{" "}
-              <button
-                className="text-primary hover:underline"
-                onClick={() => setMode("signin")}
-              >
+              <button className="text-primary hover:underline" onClick={() => setMode("signin")}>
                 Sign in
               </button>
             </>
           ) : (
             <>
               Need to set a password?{" "}
-              <button
-                className="text-primary hover:underline"
-                onClick={() => setMode("signup")}
-              >
+              <button className="text-primary hover:underline" onClick={() => setMode("signup")}>
                 Sign up
               </button>
             </>
