@@ -1,12 +1,13 @@
 // Lightweight client-side auth for the GalaxyAI demo.
-// Only the username "kamogelo" is allowed to register / sign in.
+// Only the user "kamogelo" is provisioned for this workspace.
 
 export const ALLOWED_USERNAME = "kamogelo";
+export const ALLOWED_EMAIL = "kamogelo@galaxyai.app";
 
-type StoredUser = { username: string; passwordHash: string };
+type StoredUser = { username: string; email: string; passwordHash: string };
 
-const USER_KEY = "galaxyai:auth:user:v1";
-const SESSION_KEY = "galaxyai:auth:session:v1";
+const USER_KEY = "galaxyai:auth:user:v2";
+const SESSION_KEY = "galaxyai:auth:session:v2";
 const EVENT = "galaxyai:auth";
 
 async function hash(pw: string): Promise<string> {
@@ -52,26 +53,53 @@ export function onAuthChange(cb: () => void): () => void {
   };
 }
 
-export async function signUp(username: string, password: string): Promise<void> {
-  if (username.trim().toLowerCase() !== ALLOWED_USERNAME) {
-    throw new Error(`Only the username "${ALLOWED_USERNAME}" is authorized for this workspace.`);
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export function validateEmail(email: string): string | null {
+  if (!EMAIL_RE.test(email.trim())) return "Please enter a valid email address.";
+  return null;
+}
+
+/**
+ * Password must be at least 12 characters and contain
+ * letters, numbers, AND special characters.
+ */
+export function validatePassword(pw: string): string | null {
+  if (pw.length < 12) return "Password must be at least 12 characters long.";
+  if (!/[A-Za-z]/.test(pw)) return "Password must include at least one letter.";
+  if (!/[0-9]/.test(pw)) return "Password must include at least one number.";
+  if (!/[^A-Za-z0-9]/.test(pw))
+    return "Password must include at least one special character (e.g. !@#$%).";
+  return null;
+}
+
+export async function signUp(email: string, password: string): Promise<void> {
+  const emailErr = validateEmail(email);
+  if (emailErr) throw new Error(emailErr);
+  if (email.trim().toLowerCase() !== ALLOWED_EMAIL) {
+    throw new Error(`Only ${ALLOWED_EMAIL} is authorized for this workspace.`);
   }
-  if (password.length < 4) throw new Error("Password must be at least 4 characters.");
+  const pwErr = validatePassword(password);
+  if (pwErr) throw new Error(pwErr);
   if (readUser()) throw new Error("An account already exists. Please sign in instead.");
-  const user: StoredUser = { username: ALLOWED_USERNAME, passwordHash: await hash(password) };
+  const user: StoredUser = {
+    username: ALLOWED_USERNAME,
+    email: ALLOWED_EMAIL,
+    passwordHash: await hash(password),
+  };
   window.localStorage.setItem(USER_KEY, JSON.stringify(user));
   window.localStorage.setItem(SESSION_KEY, user.username);
   emit();
 }
 
-export async function signIn(username: string, password: string): Promise<void> {
+export async function signIn(email: string, password: string): Promise<void> {
   const user = readUser();
   if (!user) throw new Error("No account found. Please sign up first.");
-  if (username.trim().toLowerCase() !== user.username) {
-    throw new Error("Invalid username or password.");
+  if (email.trim().toLowerCase() !== user.email) {
+    throw new Error("Invalid email or password.");
   }
   const h = await hash(password);
-  if (h !== user.passwordHash) throw new Error("Invalid username or password.");
+  if (h !== user.passwordHash) throw new Error("Invalid email or password.");
   window.localStorage.setItem(SESSION_KEY, user.username);
   emit();
 }
