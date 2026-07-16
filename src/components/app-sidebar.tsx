@@ -1,4 +1,5 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
   Mail,
@@ -9,7 +10,10 @@ import {
   Info,
   LifeBuoy,
   Orbit,
+  LogOut,
 } from "lucide-react";
+import { toast } from "sonner";
+import { getSessionUsername, onAuthChange, signOut } from "@/lib/auth";
 
 import {
   Sidebar,
