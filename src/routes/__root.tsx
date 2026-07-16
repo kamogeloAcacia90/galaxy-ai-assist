@@ -4,16 +4,19 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
+  useNavigate,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppSidebar } from "../components/app-sidebar";
 import { SidebarProvider, SidebarTrigger } from "../components/ui/sidebar";
+import { isAuthenticated, onAuthChange } from "../lib/auth";
 
 function NotFoundComponent() {
   return (
@@ -130,32 +133,58 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (r) => r.location.pathname });
+  const navigate = useNavigate();
+  const [authed, setAuthed] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const sync = () => setAuthed(isAuthenticated());
+    sync();
+    return onAuthChange(sync);
+  }, []);
+
+  useEffect(() => {
+    if (authed === false && pathname !== "/auth") {
+      navigate({ to: "/auth", replace: true });
+    }
+  }, [authed, pathname, navigate]);
+
+  const isAuthRoute = pathname === "/auth";
 
   return (
     <QueryClientProvider client={queryClient}>
       <div className="relative min-h-screen">
         <div className="pointer-events-none fixed inset-0 -z-20 starfield opacity-70" />
         <div className="pointer-events-none fixed inset-0 -z-10 nebula-glow" />
-        <SidebarProvider>
-          <div className="flex min-h-screen w-full">
-            <AppSidebar />
-            <div className="flex min-h-screen flex-1 flex-col">
-              <header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b border-border/40 bg-background/60 px-4 backdrop-blur-xl">
-                <SidebarTrigger className="click-glow" />
-                <span className="font-display text-sm font-semibold text-galaxy">
-                  Workplace Productivity Assistant
-                </span>
-              </header>
-              <main className="flex-1 px-4 py-8 sm:px-8">
-                <div className="mx-auto max-w-6xl">
-                  <Outlet />
-                </div>
-              </main>
+        {isAuthRoute || authed === false ? (
+          <main className="flex min-h-screen flex-1 flex-col px-4 py-8 sm:px-8">
+            <div className="mx-auto w-full max-w-6xl">
+              {isAuthRoute ? <Outlet /> : null}
             </div>
-          </div>
-        </SidebarProvider>
+          </main>
+        ) : (
+          <SidebarProvider>
+            <div className="flex min-h-screen w-full">
+              <AppSidebar />
+              <div className="flex min-h-screen flex-1 flex-col">
+                <header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b border-border/40 bg-background/60 px-4 backdrop-blur-xl">
+                  <SidebarTrigger className="click-glow" />
+                  <span className="font-display text-sm font-semibold text-galaxy">
+                    Workplace Productivity Assistant
+                  </span>
+                </header>
+                <main className="flex-1 px-4 py-8 sm:px-8">
+                  <div className="mx-auto max-w-6xl">
+                    {authed ? <Outlet /> : null}
+                  </div>
+                </main>
+              </div>
+            </div>
+          </SidebarProvider>
+        )}
         <Toaster theme="dark" position="bottom-right" />
       </div>
     </QueryClientProvider>
   );
 }
+
