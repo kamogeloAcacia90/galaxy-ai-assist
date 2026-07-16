@@ -118,13 +118,29 @@ export function AppSidebar() {
       <SidebarFooter className="border-t border-border/40">
         <div className="flex items-center gap-3 px-2 py-2 group-data-[collapsible=icon]:hidden">
           <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-galaxy text-primary-foreground font-semibold glow">
-            AS
+            {initials}
           </div>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-medium">Astro User</p>
-            <p className="truncate text-xs text-muted-foreground">astro@galaxyai.app</p>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium">{username ?? "Guest"}</p>
+            <p className="truncate text-xs text-muted-foreground">
+              {username ? `${username}@galaxyai.app` : "Not signed in"}
+            </p>
           </div>
+          <button
+            onClick={handleSignOut}
+            title="Sign out"
+            className="click-glow rounded-md p-1.5 text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
         </div>
+        <button
+          onClick={handleSignOut}
+          title="Sign out"
+          className="click-glow hidden group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:my-2 group-data-[collapsible=icon]:grid group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:place-items-center rounded-md text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+        >
+          <LogOut className="h-4 w-4" />
+        </button>
       </SidebarFooter>
     </Sidebar>
   );
