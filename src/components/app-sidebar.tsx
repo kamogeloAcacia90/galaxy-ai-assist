@@ -44,7 +44,24 @@ const secondary = [
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
+  const navigate = useNavigate();
   const isActive = (p: string) => (p === "/" ? pathname === "/" : pathname.startsWith(p));
+  const [username, setUsername] = useState<string | null>(null);
+
+  useEffect(() => {
+    const sync = () => setUsername(getSessionUsername());
+    sync();
+    return onAuthChange(sync);
+  }, []);
+
+  const initials = (username ?? "AS").slice(0, 2).toUpperCase();
+
+  function handleSignOut() {
+    signOut();
+    toast.success("Signed out");
+    navigate({ to: "/auth", replace: true });
+  }
+
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border/40">
